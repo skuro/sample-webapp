@@ -1,11 +1,6 @@
 package tk.skuro.sample.web.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -18,7 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class DumperController extends BaseSampleController {
 
     @RequestMapping(method = RequestMethod.GET, value = {"/dumper"})
-    public ModelAndView getSample(ModelMap pModelMap) {
+    public ModelAndView getSample() {
         final ModelAndView modelAndView = new ModelAndView("dumper");
         addUsername(modelAndView);
         return modelAndView;
