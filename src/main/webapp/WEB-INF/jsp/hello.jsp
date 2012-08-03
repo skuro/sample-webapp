@@ -15,6 +15,6 @@
 <p>This part of the page should be loaded using a different SecurityContext than the iframe below.</p>
 <strong>I am: </strong> ${username}
 <hr />
-<iframe src="/dumper?j_username=user" />
+<iframe src="/dumper?j_switch_username=user" />
 </body>
 </html>
