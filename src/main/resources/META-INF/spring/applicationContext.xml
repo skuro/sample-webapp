@@ -19,7 +19,7 @@
     <context:component-scan base-package="tk.skuro.sample.web.controller"/>
 
     <beans:bean id="viewResolver"
-          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <beans:property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
         <beans:property name="prefix" value="/WEB-INF/jsp/"/>
         <beans:property name="suffix" value=".jsp"/>
@@ -27,14 +27,27 @@
 
     <http auto-config="true" use-expressions="true">
         <intercept-url pattern="/sample*" method="GET" access="hasAnyRole('role_admin')"/>
+        <intercept-url pattern="/dumper*" method="GET" access="hasAnyRole('role_user')"/>
+        <intercept-url pattern="/j_spring_security_switch_user*" method="GET" access="hasAnyRole('role_admin')" />
+        <custom-filter ref="switchUserProcessingFilter" position="SWITCH_USER_FILTER" />
     </http>
 
     <authentication-manager>
         <authentication-provider>
             <user-service>
-                <user name="admin" password="admin" authorities="role_admin" />
+                <user name="admin" password="admin" authorities="role_admin, role_user" />
+                <user name="user" password="user" authorities="role_user" />
             </user-service>
         </authentication-provider>
     </authentication-manager>
+
+    <beans:bean id="switchUserProcessingFilter"
+                class="org.springframework.security.web.authentication.switchuser.SwitchUserFilter">
+        <!-- dirty trick, service bean id set by the user-service tag found using debug -->
+        <beans:property name="userDetailsService" ref="org.springframework.security.provisioning.InMemoryUserDetailsManager#0"/>
+        <beans:property name="switchUserUrl" value="/j_spring_security_switch_user"/>
+        <beans:property name="exitUserUrl" value="/j_spring_security_exit_user"/>
+        <beans:property name="targetUrl" value="/sample"/>
+    </beans:bean>
 
 </beans:beans>
