@@ -26,7 +26,7 @@
     </beans:bean>
 
     <http auto-config="true" use-expressions="true">
-        <intercept-url pattern="/sample*" method="GET" access="hasAnyRole('role_admin')"/>
+        <intercept-url pattern="/sample*" method="GET" access="hasAnyRole('role_user, role_admin')"/>
         <intercept-url pattern="/dumper*" method="GET" access="hasAnyRole('role_user')"/>
         <intercept-url pattern="/j_spring_security_switch_user*" method="GET" access="hasAnyRole('role_admin')"/>
         <custom-filter ref="switchUserProcessingFilter" position="SWITCH_USER_FILTER"/>
@@ -57,6 +57,11 @@
         <!-- dirty trick, service bean id set by the user-service tag found using debug -->
         <beans:property name="userDetailsService"
                         ref="org.springframework.security.provisioning.InMemoryUserDetailsManager#0" />
+        <beans:property name="allowedAuthorities">
+            <beans:list>
+                <beans:value>role_admin</beans:value>
+            </beans:list>
+        </beans:property>
     </beans:bean>
 
 </beans:beans>

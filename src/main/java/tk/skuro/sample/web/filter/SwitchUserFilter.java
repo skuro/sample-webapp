@@ -1,6 +1,10 @@
 package tk.skuro.sample.web.filter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -8,8 +12,10 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +30,8 @@ public class SwitchUserFilter extends GenericFilterBean {
 
     private UserDetailsService userDetailsService;
 
+    List<String> allowedAuthorities = Collections.emptyList();
+
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
@@ -32,14 +40,18 @@ public class SwitchUserFilter extends GenericFilterBean {
         if (requireSwitchUser(request)) {
             final Authentication originalUser = SecurityContextHolder.getContext().getAuthentication();
             try {
-                final Authentication targetUser = attemptSwitchUser(request);
+                final Authentication targetUser = attemptSwitchUser(request, originalUser);
 
                 // update the current context to the new target user
                 SecurityContextHolder.getContext().setAuthentication(targetUser);
                 chain.doFilter(req, res);
             }
+            catch (AccessDeniedException e) {
+                // NOP
+            }
             finally {
                 SecurityContextHolder.getContext().setAuthentication(originalUser);
+                chain.doFilter(req, res);
             }
         }
         else {
@@ -47,10 +59,23 @@ public class SwitchUserFilter extends GenericFilterBean {
         }
     }
 
-    private Authentication attemptSwitchUser(HttpServletRequest request) {
+    private Authentication attemptSwitchUser(HttpServletRequest request, Authentication originalUser) {
+        checkGrantedAuthorities(originalUser);
         final String targetUsername = request.getParameter(SWITCH_USERNAME);
         UserDetails targetUser = userDetailsService.loadUserByUsername(targetUsername);
         return createSwitchUserToken(targetUser);
+    }
+
+    private void checkGrantedAuthorities(Authentication originalUser) {
+        final Collection<? extends GrantedAuthority> authorities = originalUser.getAuthorities();
+        HashSet<String> currentAuths = new HashSet<String>(authorities.size());
+        for (GrantedAuthority auth : authorities) {
+            currentAuths.add(auth.getAuthority());
+        }
+        currentAuths.retainAll(this.allowedAuthorities);
+        if (currentAuths.isEmpty()) {
+            throw new AccessDeniedException("You shall not pass!");
+        }
     }
 
     private Authentication createSwitchUserToken(UserDetails targetUser) {
@@ -63,5 +88,9 @@ public class SwitchUserFilter extends GenericFilterBean {
 
     public void setUserDetailsService(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
+    }
+
+    public void setAllowedAuthorities(List<String> allowedAuthorities) {
+        this.allowedAuthorities = allowedAuthorities;
     }
 }
