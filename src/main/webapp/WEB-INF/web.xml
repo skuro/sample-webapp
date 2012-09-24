@@ -21,13 +21,23 @@
 
     <filter-mapping>
         <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/hello*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/dump*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/base*</url-pattern>
     </filter-mapping>
 
     <!-- Creates the Spring Container shared by all Servlets and Filters -->
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
+    
+    
 
     <!--
       - Provides core MVC application controller. See bank-servlet.xml.
@@ -41,10 +51,18 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <servlet>
+        <servlet-name>consumingServlet</servlet-name>
+        <servlet-class>tk.skuro.sample.web.POSTConsumingServlet</servlet-class>
+    </servlet>
 
     <servlet-mapping>
         <servlet-name>Spring MVC</servlet-name>
         <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>consumingServlet</servlet-name>
+        <url-pattern>/postservlet</url-pattern>
     </servlet-mapping>
 
     <welcome-file-list>
